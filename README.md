@@ -2,6 +2,8 @@
 
 A minimal Android app that shows the sound level picked up by your phone's microphone, in real time.
 
+<img src="sound-meter-ui.jpg" alt="Sound Meter showing 53 dB(A) with a 30-second level graph" width="280">
+
 - Current level in **dB(A)**, like a standard sound level meter
 - Live graph of the last 30 seconds
 - Min / max values (tap anywhere to reset)
