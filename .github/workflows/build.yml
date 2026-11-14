@@ -3,8 +3,18 @@ name: Build APK
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['v*'] # tag pushes always build: path filters do not apply to tags
+    paths-ignore: # documentation-only changes do not need a build
+      - '**.md'
+      - '**.jpg'
+      - '**.png'
+      - LICENSE
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.jpg'
+      - '**.png'
+      - LICENSE
   workflow_dispatch:
 
 jobs:
