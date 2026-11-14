@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationId>com.SoundMeter.app</ApplicationId>
+    <ApplicationId>com.soundmeter.app</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
   </PropertyGroup>

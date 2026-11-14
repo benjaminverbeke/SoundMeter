@@ -1,0 +1,68 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Optional signing secrets. Without them the APK is signed with a throwaway debug key.
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '17'
+
+      - name: Install .NET Android workload
+        run: dotnet workload install android
+
+      - name: Install Android SDK packages
+        run: >
+          dotnet build SoundMeter/SoundMeter.csproj -t:InstallAndroidDependencies
+          -p:AndroidSdkDirectory="$ANDROID_HOME" -p:AcceptAndroidSDKLicenses=true
+
+      - name: Decode keystore
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      - name: Build signed APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          SIGNING=()
+          if [ "$HAS_KEYSTORE" = "true" ]; then
+            SIGNING=(
+              -p:AndroidKeyStore=true
+              -p:AndroidSigningKeyStore="$RUNNER_TEMP/release.keystore"
+              -p:AndroidSigningKeyAlias="$KEY_ALIAS"
+              -p:AndroidSigningKeyPass=env:KEYSTORE_PASSWORD
+              -p:AndroidSigningStorePass=env:KEYSTORE_PASSWORD
+            )
+          fi
+          # The version code must increase with every update: use the workflow run number.
+          dotnet publish SoundMeter/SoundMeter.csproj -c Release -o out \
+            -p:AndroidSdkDirectory="$ANDROID_HOME" \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            "${SIGNING[@]}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SoundMeter-apk
+          path: out/*-Signed.apk
+          if-no-files-found: error
