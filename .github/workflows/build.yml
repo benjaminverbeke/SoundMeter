@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to create releases on version tags
     env:
       # Optional signing secrets. Without them the APK is signed with a throwaway debug key.
       HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
@@ -74,14 +76,30 @@ jobs:
               -p:AndroidSigningStorePass=env:KEYSTORE_PASSWORD
             )
           fi
+          # On a version tag (v1.2), use it as the version shown to users.
+          VERSION=()
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION=(-p:ApplicationDisplayVersion="${GITHUB_REF_NAME#v}")
+          fi
           # The version code must increase with every update: use the workflow run number.
           dotnet publish SoundMeter/SoundMeter.csproj -c Release -o out \
             -p:AndroidSdkDirectory="$ANDROID_HOME" \
             -p:ApplicationVersion=${{ github.run_number }} \
-            "${SIGNING[@]}"
+            "${VERSION[@]}" "${SIGNING[@]}"
 
       - uses: actions/upload-artifact@v6
         with:
           name: SoundMeter-apk
           path: out/*-Signed.apk
           if-no-files-found: error
+
+      # Pushing a tag like v1.0 publishes a GitHub release with the signed APK attached.
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK="SoundMeter-$GITHUB_REF_NAME.apk"
+          cp out/*-Signed.apk "$APK"
+          gh release create "$GITHUB_REF_NAME" "$APK" \
+            --title "Sound Meter ${GITHUB_REF_NAME#v}" --generate-notes
