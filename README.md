@@ -9,7 +9,7 @@ A minimal Android app that shows the sound level picked up by your phone's micro
 - Min / max values (tap anywhere to reset)
 - Manual calibration adjustment (− / +), remembered between launches
 
-**Lightweight** (~3 MB), **free**, **no ads**, no tracking, no internet access. The only permission is the microphone.
+**Lightweight** (~3 MB), **free**, **no ads**, **records nothing**: sound is measured live and never saved or sent. No tracking, no internet access. The only permission is the microphone.
 
 ## Build
 
