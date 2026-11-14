@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationId>com.SoundMeter.app</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+  </PropertyGroup>
+
+  <!-- Release: everything tuned for the smallest possible APK. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Only 64-bit ARM (every phone sold in recent years). Add ;android-x64 to run Release on an emulator. -->
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <!-- Aggressive IL trimming of the .NET libraries. -->
+    <TrimMode>full</TrimMode>
+    <!-- No AOT: AOT makes startup faster but the APK much bigger. -->
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <!-- Drop features this app does not need. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <MetricsSupport>false</MetricsSupport>
+    <!-- Shrink the Java side too. -->
+    <AndroidLinkTool>r8</AndroidLinkTool>
+  </PropertyGroup>
+
+</Project>
