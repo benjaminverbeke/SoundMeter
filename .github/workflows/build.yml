@@ -17,9 +17,27 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Exact latest .NET 10 SDK: pins the build to .NET 10 and gives the cache a precise key.
+      # A new SDK release (about monthly) changes the key, so the cache rebuilds once.
+      - name: Resolve latest .NET 10 SDK
+        id: sdk
+        run: |
+          v=$(curl -fsSL https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json | jq -r '."latest-sdk"')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Using .NET SDK $v"
+          # Own .NET folder (instead of the runner's shared one) so it can be cached with its workloads.
+          echo "DOTNET_INSTALL_DIR=$HOME/.dotnet-ci" >> "$GITHUB_ENV"
+
+      - name: Restore .NET SDK + Android workload cache
+        id: dotnet-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.DOTNET_INSTALL_DIR }}
+          key: dotnet-android-${{ runner.os }}-${{ steps.sdk.outputs.version }}
+
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ steps.sdk.outputs.version }}
 
       - uses: actions/setup-java@v5
         with:
@@ -27,6 +45,7 @@ jobs:
           java-version: '17'
 
       - name: Install .NET Android workload
+        if: steps.dotnet-cache.outputs.cache-hit != 'true'
         run: dotnet workload install android
 
       - name: Install Android SDK packages
